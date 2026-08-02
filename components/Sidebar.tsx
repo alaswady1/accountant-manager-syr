@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
+  Settings,
   Package,
   ShoppingCart,
   Users,
-  Briefcase,
   TrendingUp,
   DollarSign,
   UserCog,
@@ -20,6 +20,7 @@ import { useLanguage } from '@/lib/language-context';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { isCurrentUserSystemAdmin } from '@/lib/system-admin';
 
 export default function Sidebar() {
   const DASHBOARD_COOKIE = 'am-dashboard-auth';
@@ -27,10 +28,17 @@ export default function Sidebar() {
   const router = useRouter();
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
+  const [isSystemAdmin, setIsSystemAdmin] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    loadSystemAdminAccess();
   }, []);
+
+  async function loadSystemAdminAccess() {
+    const hasAccess = await isCurrentUserSystemAdmin();
+    setIsSystemAdmin(hasAccess);
+  }
 
   async function handleLogout() {
     try {
@@ -74,7 +82,6 @@ export default function Sidebar() {
       items: [
         { name: t.nav.employees, href: '/dashboard/employees', icon: UserCog },
         { name: t.nav.customers, href: '/dashboard/customers', icon: Users },
-        { name: 'Clients', href: '/dashboard/clients', icon: Briefcase },
         { name: 'Suppliers', href: '/dashboard/suppliers', icon: Building2 },
       ]
     }
@@ -130,6 +137,17 @@ export default function Sidebar() {
             <p className="mt-0.5" style={{ color: '#94A3B8', fontSize: '12px' }}>SYR</p>
           </div>
           <div className="flex items-center gap-3">
+            {isSystemAdmin ? (
+              <Link
+                href="/dashboard/manage"
+                className="p-2 rounded-lg hover:bg-opacity-10"
+                style={{ color: '#94A3B8' }}
+                aria-label="Admin Panel"
+                title="Admin Panel"
+              >
+                <Settings size={18} />
+              </Link>
+            ) : null}
             <LanguageSwitcher />
             <button
               onClick={handleLogout}
@@ -212,6 +230,17 @@ export default function Sidebar() {
           </div>
 
           <div className="mt-auto pt-2 border-t w-full flex flex-col items-center gap-2" style={{ borderColor: '#334155' }}>
+            {isSystemAdmin ? (
+              <Link
+                href="/dashboard/manage"
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300"
+                style={{ color: pathname === '/dashboard/manage' ? '#FFFFFF' : '#94A3B8', backgroundColor: pathname === '/dashboard/manage' ? '#FF6666' : 'transparent' }}
+                title="Admin Panel"
+                aria-label="Admin Panel"
+              >
+                <Settings size={17} />
+              </Link>
+            ) : null}
             <LanguageSwitcher />
           </div>
         </div>
